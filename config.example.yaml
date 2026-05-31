@@ -1,0 +1,9 @@
+
+protocol: unix
+address: router.sock
+
+reject_from:
+  - "joe@example.com"
+
+reject_to:
+  - "joe@example.com"
