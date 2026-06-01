@@ -1,4 +1,4 @@
-VERSION ?= v0.2.1
+VERSION ?= v0.2.2
 COMMIT := $(shell git rev-parse --short HEAD)
 
 .PHONY: build

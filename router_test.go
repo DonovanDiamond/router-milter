@@ -7,6 +7,32 @@ import (
 	"github.com/DonovanDiamond/milter"
 )
 
+func TestRouterMilter_RcptTo_Sha256(t *testing.T) {
+	// sha256 of "test@example.com"
+	hash := "973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b"
+	r := &RouterMilter{
+		rejectedToSha256: map[string]bool{hash: true},
+	}
+
+	// Test rejected address (matches hash)
+	resp, _ := r.RcptTo("test@example.com", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for test@example.com, got %v", resp)
+	}
+
+	// Test allowed address (does not match hash)
+	resp, _ = r.RcptTo("other@example.com", nil)
+	if resp != milter.RespContinue {
+		t.Errorf("Expected RespContinue for other@example.com, got %v", resp)
+	}
+
+	// Test case-insensitive matching for hash
+	resp, _ = r.RcptTo("TEST@EXAMPLE.COM", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for TEST@EXAMPLE.COM, got %v", resp)
+	}
+}
+
 func TestRouterMilter_CaseInsensitive(t *testing.T) {
 	rejectedFrom := map[string]bool{"sender@example.com": true}
 	rejectedTo := map[string]bool{"rcpt@example.com": true}

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"log"
 	"net"
 	"net/textproto"
@@ -20,6 +22,7 @@ type RouterMilter struct {
 	rejectedFrom      map[string]bool
 	rejectedTo        map[string]bool
 	rejectedToRegex   []*regexp.Regexp
+	rejectedToSha256  map[string]bool
 }
 
 func (e *RouterMilter) Connect(host string, family string, port uint16, addr net.IP, m *milter.Modifier) (milter.Response, error) {
@@ -65,6 +68,12 @@ func (e *RouterMilter) RcptTo(to string, m *milter.Modifier) (milter.Response, e
 			log.Printf("[%s] Rejected RCPT TO (regex): %s", e.ip, to)
 			return milter.RespReject, nil
 		}
+	}
+
+	hash := fmt.Sprintf("%x", sha256.Sum256([]byte(toLower)))
+	if e.rejectedToSha256[hash] {
+		log.Printf("[%s] Rejected RCPT TO (hash): %s", e.ip, to)
+		return milter.RespReject, nil
 	}
 
 	// save recipient address for later reference

@@ -16,6 +16,8 @@ reject_to:
   - alice@example.com
 reject_to_regex:
   - .*@regex\.com
+reject_to_sha256:
+  - 973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b
 `
 	tmpfile, err := os.CreateTemp("", "config*.yaml")
 	if err != nil {
@@ -41,6 +43,7 @@ reject_to_regex:
 		RejectFrom: []string{"joe@example.com"},
 		RejectTo:   []string{"alice@example.com"},
 		RejectToRegex: []string{".*@regex\\.com"},
+		RejectToSha256: []string{"973dfe463ec85785f5f95af5ba3906eedb2d931c24e69824a89ea65dba4e813b"},
 	}
 
 	if !reflect.DeepEqual(cfg, expected) {

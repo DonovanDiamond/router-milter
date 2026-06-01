@@ -18,6 +18,7 @@ var address = flag.String("addr", "/var/spool/postfix/milter/router.sock", "Bind
 var rejectFrom = flag.String("reject-from", "", "Comma-separated list of rejected sender addresses")
 var rejectTo = flag.String("reject-to", "", "Comma-separated list of rejected recipient addresses")
 var rejectToRegex = flag.String("reject-to-regex", "", "Comma-separated list of rejected recipient regexes")
+var rejectToSha256 = flag.String("reject-to-sha256", "", "Comma-separated list of rejected recipient sha256 hashes")
 var configPath = flag.String("config", "", "Path to configuration file (yaml)")
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 
 	rejectedFrom := make(map[string]bool)
 	rejectedTo := make(map[string]bool)
+	rejectedToSha256Map := make(map[string]bool)
 	var rejectedToRegexPatterns []string
 
 	// load config file if specified
@@ -48,6 +50,9 @@ func main() {
 			rejectedTo[strings.ToLower(strings.Trim(addr, "<>"))] = true
 		}
 		rejectedToRegexPatterns = append(rejectedToRegexPatterns, cfg.RejectToRegex...)
+		for _, hash := range cfg.RejectToSha256 {
+			rejectedToSha256Map[strings.ToLower(strings.TrimSpace(hash))] = true
+		}
 	}
 
 	if *rejectFrom != "" {
@@ -67,6 +72,11 @@ func main() {
 	if *rejectToRegex != "" {
 		for re := range strings.SplitSeq(*rejectToRegex, ",") {
 			rejectedToRegexPatterns = append(rejectedToRegexPatterns, strings.TrimSpace(re))
+		}
+	}
+	if *rejectToSha256 != "" {
+		for hash := range strings.SplitSeq(*rejectToSha256, ",") {
+			rejectedToSha256Map[strings.ToLower(strings.TrimSpace(hash))] = true
 		}
 	}
 
