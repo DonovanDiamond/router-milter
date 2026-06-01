@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	Protocol   string   `yaml:"protocol"`
-	Address    string   `yaml:"address"`
-	RejectFrom []string `yaml:"reject_from"`
-	RejectTo   []string `yaml:"reject_to"`
+	Protocol      string   `yaml:"protocol"`
+	Address       string   `yaml:"address"`
+	RejectFrom    []string `yaml:"reject_from"`
+	RejectTo      []string `yaml:"reject_to"`
+	RejectToRegex []string `yaml:"reject_to_regex"`
 }
 
 func LoadConfig(path string) (*Config, error) {

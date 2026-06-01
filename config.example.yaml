@@ -7,3 +7,7 @@ reject_from:
 
 reject_to:
   - "joe@example.com"
+
+reject_to_regex:
+  - ".*@example\.com"
+

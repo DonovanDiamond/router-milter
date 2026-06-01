@@ -4,19 +4,21 @@ import (
 	"log"
 	"net"
 	"net/textproto"
+	"regexp"
 
 	"github.com/DonovanDiamond/milter"
 )
 
 type RouterMilter struct {
 	milter.Milter
-	host         string
-	ip           net.IP
-	helo         string
-	from         string
-	to           []string
-	rejectedFrom map[string]bool
-	rejectedTo   map[string]bool
+	host              string
+	ip                net.IP
+	helo              string
+	from              string
+	to                []string
+	rejectedFrom      map[string]bool
+	rejectedTo        map[string]bool
+	rejectedToRegex   []*regexp.Regexp
 }
 
 func (e *RouterMilter) Connect(host string, family string, port uint16, addr net.IP, m *milter.Modifier) (milter.Response, error) {
@@ -52,6 +54,14 @@ func (e *RouterMilter) RcptTo(to string, m *milter.Modifier) (milter.Response, e
 		log.Printf("[%s] Rejected RCPT TO: %s", e.ip, to)
 		return milter.RespReject, nil
 	}
+
+	for _, re := range e.rejectedToRegex {
+		if re.MatchString(to) {
+			log.Printf("[%s] Rejected RCPT TO (regex): %s", e.ip, to)
+			return milter.RespReject, nil
+		}
+	}
+
 	// save recipient address for later reference
 	e.to = append(e.to, to)
 	log.Printf("[%s] RCPT TO: %s", e.ip, to)

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/DonovanDiamond/milter"
@@ -16,6 +17,7 @@ var protocol = flag.String("proto", "unix", "Protocol family (unix or tcp)")
 var address = flag.String("addr", "/var/spool/postfix/milter/router.sock", "Bind to address or unix domain socket")
 var rejectFrom = flag.String("reject-from", "", "Comma-separated list of rejected sender addresses")
 var rejectTo = flag.String("reject-to", "", "Comma-separated list of rejected recipient addresses")
+var rejectToRegex = flag.String("reject-to-regex", "", "Comma-separated list of rejected recipient regexes")
 var configPath = flag.String("config", "", "Path to configuration file (yaml)")
 
 func main() {
@@ -25,6 +27,7 @@ func main() {
 
 	rejectedFrom := make(map[string]bool)
 	rejectedTo := make(map[string]bool)
+	var rejectedToRegexPatterns []string
 
 	// load config file if specified
 	if *configPath != "" {
@@ -44,6 +47,7 @@ func main() {
 		for _, addr := range cfg.RejectTo {
 			rejectedTo[strings.Trim(addr, "<>")] = true
 		}
+		rejectedToRegexPatterns = append(rejectedToRegexPatterns, cfg.RejectToRegex...)
 	}
 
 	if *rejectFrom != "" {
@@ -59,6 +63,20 @@ func main() {
 			addr = strings.Trim(addr, "<>")
 			rejectedTo[addr] = true
 		}
+	}
+	if *rejectToRegex != "" {
+		for re := range strings.SplitSeq(*rejectToRegex, ",") {
+			rejectedToRegexPatterns = append(rejectedToRegexPatterns, strings.TrimSpace(re))
+		}
+	}
+
+	var rejectedToRegexCompiled []*regexp.Regexp
+	for _, pattern := range rejectedToRegexPatterns {
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			log.Fatalf("error compiling regex %q: %v", pattern, err)
+		}
+		rejectedToRegexCompiled = append(rejectedToRegexCompiled, re)
 	}
 
 	// make sure the specified protocol is either unix or tcp
@@ -92,8 +110,9 @@ func main() {
 
 	init := func() (milter.Milter, milter.OptAction, milter.OptProtocol) {
 		return &RouterMilter{
-				rejectedFrom: rejectedFrom,
-				rejectedTo:   rejectedTo,
+				rejectedFrom:    rejectedFrom,
+				rejectedTo:      rejectedTo,
+				rejectedToRegex: rejectedToRegexCompiled,
 			},
 			milter.OptAddHeader | milter.OptChangeHeader,
 			milter.OptNoBody | milter.OptNoHeaders | milter.OptNoEOH

@@ -1,10 +1,49 @@
 package main
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/DonovanDiamond/milter"
 )
+
+func TestRouterMilter_RcptTo_Regex(t *testing.T) {
+	re := regexp.MustCompile(`.*@example\.com`)
+	r := &RouterMilter{
+		rejectedToRegex: []*regexp.Regexp{re},
+	}
+
+	// Test rejected address (matches regex)
+	resp, _ := r.RcptTo("joe@example.com", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for joe@example.com, got %v", resp)
+	}
+
+	// Test allowed address (does not match regex)
+	resp, _ = r.RcptTo("joe@other.com", nil)
+	if resp != milter.RespContinue {
+		t.Errorf("Expected RespContinue for joe@other.com, got %v", resp)
+	}
+}
+
+func TestRouterMilter_RcptTo_Regex2(t *testing.T) {
+	re := regexp.MustCompile(`.*@*\.net`)
+	r := &RouterMilter{
+		rejectedToRegex: []*regexp.Regexp{re},
+	}
+
+	// Test rejected address (matches regex)
+	resp, _ := r.RcptTo("joe@example.net", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for joe@example.net, got %v", resp)
+	}
+
+	// Test allowed address (does not match regex)
+	resp, _ = r.RcptTo("joe@other.com", nil)
+	if resp != milter.RespContinue {
+		t.Errorf("Expected RespContinue for joe@other.com, got %v", resp)
+	}
+}
 
 func TestRouterMilter_MailFrom(t *testing.T) {
 	rejectedFrom := map[string]bool{"rejected@example.com": true}
