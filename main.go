@@ -42,10 +42,10 @@ func main() {
 			*address = cfg.Address
 		}
 		for _, addr := range cfg.RejectFrom {
-			rejectedFrom[strings.Trim(addr, "<>")] = true
+			rejectedFrom[strings.ToLower(strings.Trim(addr, "<>"))] = true
 		}
 		for _, addr := range cfg.RejectTo {
-			rejectedTo[strings.Trim(addr, "<>")] = true
+			rejectedTo[strings.ToLower(strings.Trim(addr, "<>"))] = true
 		}
 		rejectedToRegexPatterns = append(rejectedToRegexPatterns, cfg.RejectToRegex...)
 	}
@@ -53,14 +53,14 @@ func main() {
 	if *rejectFrom != "" {
 		for addr := range strings.SplitSeq(*rejectFrom, ",") {
 			addr = strings.TrimSpace(addr)
-			addr = strings.Trim(addr, "<>")
+			addr = strings.ToLower(strings.Trim(addr, "<>"))
 			rejectedFrom[addr] = true
 		}
 	}
 	if *rejectTo != "" {
 		for addr := range strings.SplitSeq(*rejectTo, ",") {
 			addr = strings.TrimSpace(addr)
-			addr = strings.Trim(addr, "<>")
+			addr = strings.ToLower(strings.Trim(addr, "<>"))
 			rejectedTo[addr] = true
 		}
 	}
@@ -72,7 +72,8 @@ func main() {
 
 	var rejectedToRegexCompiled []*regexp.Regexp
 	for _, pattern := range rejectedToRegexPatterns {
-		re, err := regexp.Compile(pattern)
+		// prefix with (?i) to make it case-insensitive
+		re, err := regexp.Compile("(?i)" + pattern)
 		if err != nil {
 			log.Fatalf("error compiling regex %q: %v", pattern, err)
 		}

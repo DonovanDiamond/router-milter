@@ -7,6 +7,35 @@ import (
 	"github.com/DonovanDiamond/milter"
 )
 
+func TestRouterMilter_CaseInsensitive(t *testing.T) {
+	rejectedFrom := map[string]bool{"sender@example.com": true}
+	rejectedTo := map[string]bool{"rcpt@example.com": true}
+	re := regexp.MustCompile(`.*@regex\.com`)
+	r := &RouterMilter{
+		rejectedFrom:    rejectedFrom,
+		rejectedTo:      rejectedTo,
+		rejectedToRegex: []*regexp.Regexp{re},
+	}
+
+	// Test case-insensitive MAIL FROM
+	resp, _ := r.MailFrom("SENDER@EXAMPLE.COM", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for SENDER@EXAMPLE.COM")
+	}
+
+	// Test case-insensitive RCPT TO
+	resp, _ = r.RcptTo("RCPT@EXAMPLE.COM", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for RCPT@EXAMPLE.COM")
+	}
+
+	// Test case-insensitive RCPT TO regex
+	resp, _ = r.RcptTo("USER@REGEX.COM", nil)
+	if resp != milter.RespReject {
+		t.Errorf("Expected RespReject for USER@REGEX.COM")
+	}
+}
+
 func TestRouterMilter_RcptTo_Regex(t *testing.T) {
 	re := regexp.MustCompile(`.*@example\.com`)
 	r := &RouterMilter{

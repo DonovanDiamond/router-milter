@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/textproto"
 	"regexp"
+	"strings"
 
 	"github.com/DonovanDiamond/milter"
 )
@@ -39,8 +40,10 @@ func (e *RouterMilter) MailFrom(from string, m *milter.Modifier) (milter.Respons
 	e.from = from
 	e.to = nil
 
+	fromLower := strings.ToLower(from)
+
 	// check if sender is rejected
-	if e.rejectedFrom[from] {
+	if e.rejectedFrom[fromLower] {
 		log.Printf("[%s] Rejected MAIL FROM: %s", e.ip, from)
 		return milter.RespReject, nil
 	}
@@ -49,14 +52,16 @@ func (e *RouterMilter) MailFrom(from string, m *milter.Modifier) (milter.Respons
 }
 
 func (e *RouterMilter) RcptTo(to string, m *milter.Modifier) (milter.Response, error) {
+	toLower := strings.ToLower(to)
+
 	// check if recipient is rejected
-	if e.rejectedTo[to] {
+	if e.rejectedTo[toLower] {
 		log.Printf("[%s] Rejected RCPT TO: %s", e.ip, to)
 		return milter.RespReject, nil
 	}
 
 	for _, re := range e.rejectedToRegex {
-		if re.MatchString(to) {
+		if re.MatchString(toLower) {
 			log.Printf("[%s] Rejected RCPT TO (regex): %s", e.ip, to)
 			return milter.RespReject, nil
 		}

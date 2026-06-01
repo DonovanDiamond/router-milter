@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.2.1] - 2026-06-01
+
+### Changed
+
+- Made recipient and sender rejection case-insensitive.
+- Made regex-based rejection case-insensitive.
+
 ## [v0.2.0] - 2026-06-01
 
 ### Added
