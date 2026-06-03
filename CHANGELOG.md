@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.1] - 2026-06-03
+
+- Added the `sha256` function to the script handler that generates hashes.
+
 ## [v0.3.0] - 2026-06-03
 
 - **BREAKING CHANGE:** The milter's actions are now controlled by a JavaScript
