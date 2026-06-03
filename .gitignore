@@ -4,5 +4,7 @@
 !Makefile
 !milter
 !vendor
+!session
+!config
 *.tar
 

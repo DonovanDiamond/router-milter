@@ -1,13 +1,5 @@
 
 protocol: unix
 address: router.sock
-
-reject_from:
-  - "joe@example.com"
-
-reject_to:
-  - "joe@example.com"
-
-reject_to_regex:
-  - ".*@example\.com"
+script_path: script.js
 

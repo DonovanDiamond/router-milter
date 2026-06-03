@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.3.0] - 2026-06-03
+
+- **BREAKING CHANGE:** The milter's actions are now controlled by a JavaScript
+script instead of configuration fields. This allows for highly flexible email
+filtering by modifying the script as needed, while significantly simplifying
+the underlying Go code.
+
 ## [v0.2.2] - 2026-06-01
 
 - Support for `reject_to_sha256` in configuration file.
